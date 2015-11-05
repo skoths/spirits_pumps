@@ -124,9 +124,9 @@ int main(int argc, char **argv)
 			pumpOn = (i >= pumps[k].mDelayTime) && i < (pumps[k].mDelayTime + pumps[k].mPumpTime);
 			if (pumpOn) {
 				if (pumps[k].mDirection == DIR_REVERSE) {
-					out |= (1 << k) << 8;
+					out |= (1) << (k * 2);
 				} else {
-					out |= 1 << k;
+					out |= (2) << (k * 2);
 				}
 			}
 		}

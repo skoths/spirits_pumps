@@ -12,7 +12,8 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#include "io_23s17.h"
+#include "i2c.h"
+#include "io_23017.h"
 
 #define MAX_PUMPS 8
 
@@ -68,6 +69,20 @@ uint8_t StrToPump(const char* str, PumpData *p)
 	return 1;
 }
 
+void pump_output(int fd, uint16_t data)
+{
+	int ret;
+
+	ret = mcp23017_write(fd, MCP23017_BASE_ADDR, GPIOA, data);
+	if (ret < 0) {
+		printf("write-error a\n");
+	}
+	ret = mcp23017_write(fd, MCP23017_BASE_ADDR, GPIOB, data >> 8);
+	if (ret < 0) {
+		printf("write-error b\n");
+	}
+}
+
 void Usage(void)
 {
 	printf("Pump-Control\n");
@@ -88,6 +103,7 @@ int main(int argc, char **argv)
 	int no_of_pumps = argc - 1;
 	PumpData pumps[8];
 	uint8_t pumpOn;
+	int fd;
 	
 	if (no_of_pumps < 1 || no_of_pumps > MAX_PUMPS) {
 		Usage();
@@ -114,7 +130,12 @@ int main(int argc, char **argv)
 	printf("Maxtime: %d sek\n", maxtime);
 	
 #ifndef SIM
-	pfio_init();
+	fd = i2c_open();
+	if (fd < 0) {
+		printf("No i2c-bus?\n");
+		exit(1);
+	}
+	mcp23017_init(fd, MCP23017_BASE_ADDR);
 #endif
 	
 	for (i = 0; i < maxtime; i++) {
@@ -133,14 +154,14 @@ int main(int argc, char **argv)
 		
 		printf("Binaryout: %04x \n", out);
 #ifndef SIM
-		pfio_write_output(out);
+		pump_output(fd, out);
 #endif
 		sleep(1);
 	}
 
 #ifndef SIM
-	pfio_write_output(0);
-	pfio_deinit();
+	pump_output(fd, 0);
+	i2c_close(fd);
 #endif
 	
 	return 0;

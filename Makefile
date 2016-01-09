@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-Wall -DRPI_PULLUP -g
-OBJS=spirits_pumps.o io_23s17.o
+CFLAGS=-Wall -g
+OBJS=spirits_pumps.o i2c.o io_23017.o
 
 all: spirits_pumps 
 
